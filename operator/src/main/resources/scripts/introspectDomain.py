@@ -195,16 +195,21 @@ class OfflineWlstEnv(object):
         cd('Application/em')
         em_attrs = ls(returnMap='true', returnType='a')
         self.empath = em_attrs['SourcePath']
-
-        if self.WDT_DOMAIN_TYPE == 'JRF' and self.KEEP_JRF_SCHEMA:
-          # load domain home into WLST
-          opss_passphrase = self.getEnvOrDef('OPSS_PASSPHRASE', self.DOMAIN_NAME + "_welcome1")
-          os.mkdir('/tmp/opsswallet')
-          exportEncryptionKey(jpsConfigFile=self.getDomainHome() + '/config/fmwconfig/jps-config.xml',\
-                                               keyFilePath='/tmp/opsswallet', keyFilePassword=opss_passphrase)
       except:
         self.empath = None
         pass
+
+      if self.WDT_DOMAIN_TYPE == 'JRF' and self.KEEP_JRF_SCHEMA:
+        try:
+          if not os.path.exists('/tmp/opsswallet/ewallet.p12'):
+            opss_passphrase = self.getEnvOrDef('OPSS_PASSPHRASE', self.DOMAIN_NAME + "_welcome1")
+            os.mkdir('/tmp/opsswallet')
+            exportEncryptionKey(jpsConfigFile=self.getDomainHome() + '/config/fmwconfig/jps-config.xml', \
+                              keyFilePath='/tmp/opsswallet', keyFilePassword=opss_passphrase)
+        except:
+          trace("SEVERE - error exporting OPSS key")
+          dumpStack()
+          sys.exit(1)
 
   def getEmPath(self):
     return self.empath
