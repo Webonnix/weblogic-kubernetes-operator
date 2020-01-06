@@ -364,7 +364,7 @@ function createWLDomain() {
     || [ ${secrets_changed} -ne 0 ] ; then
 
     trace "Need to create domain ${WDT_DOMAIN_TYPE}"
-    wdtCreatePrimodialDomain
+    wdtCreateDomain
     DOMAIN_CREATED=1
 
     # For lifecycle updates:
@@ -518,20 +518,20 @@ function wdtCreateDomain() {
   export __WLSDEPLOY_STORE_MODEL__=1
 
   if [ ! -z ${WDT_PASSPHRASE} ]; then
-    yes ${WDT_PASSPHRASE} | ${WDT_BINDIR}/updateDomain.sh -oracle_home ${MW_HOME} -domain_home \
+    yes ${WDT_PASSPHRASE} | ${WDT_BINDIR}/createDomain.sh -oracle_home ${MW_HOME} -domain_home \
     ${DOMAIN_HOME} ${model_list} ${archive_list} ${variable_list} -use_encryption -domain_type ${WDT_DOMAIN_TYPE} \
     ${OPSS_FLAGS}
   else
-    ${WDT_BINDIR}/updateDomain.sh -oracle_home ${MW_HOME} -domain_home ${DOMAIN_HOME} $model_list \
+    ${WDT_BINDIR}/createDomain.sh -oracle_home ${MW_HOME} -domain_home ${DOMAIN_HOME} $model_list \
     ${archive_list} ${variable_list}  -domain_type ${WDT_DOMAIN_TYPE} ${OPSS_FLAGS}
   fi
   ret=$?
   if [ $ret -ne 0 ]; then
     trace SEVERE "Create Domain Failed "
     if [ -d ${LOG_HOME} ] && [ ! -z ${LOG_HOME} ] ; then
-      cp ${WDT_BINDIR}/../logs/updateDomain.log ${LOG_HOME}/introspectJob_createDomain.log
+      cp ${WDT_BINDIR}/../logs/createDomain.log ${LOG_HOME}/introspectJob_createDomain.log
     else
-      tail -100 ${WDT_BINDIR}/../logs/updateDomain.log
+      tail -100 ${WDT_BINDIR}/../logs/createDomain.log
     fi
     exit 1
   fi
