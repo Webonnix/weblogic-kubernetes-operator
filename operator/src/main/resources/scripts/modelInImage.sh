@@ -364,7 +364,7 @@ function createWLDomain() {
     || [ ${secrets_changed} -ne 0 ] ; then
 
     trace "Need to create domain ${WDT_DOMAIN_TYPE}"
-    wdtCreateDomain
+    wdtCreatePrimodialDomain
     DOMAIN_CREATED=1
 
     # For lifecycle updates:
@@ -465,12 +465,12 @@ function getSecretsMD5() {
 }
 
 #
-# wdtCreateDomain call WDT to create the domain
+# wdtCreatePrimodialDomain call WDT to create the domain
 #
 
-function wdtCreateDomain() {
+function wdtCreatePrimodialDomain() {
 
-  trace "Entering wdtCreateDomain"
+  trace "Entering wdtCreatePrimodialDomain"
   # make sure wdt create write out the merged model to a file in the root of the domain
   export __WLSDEPLOY_STORE_MODEL__=1
 
@@ -493,8 +493,52 @@ function wdtCreateDomain() {
     exit 1
   fi
 
+  # tar up primodial domain with em.ear if it is there.  The zip will be added to the introspect config map by the
+  # introspectDomain.py
+
+  empath=""
+  if [ "${WDT_DOMAIN_TYPE}" != "WLS" ] ; then
+    empath=$(grep "/em.ear" ${DOMAIN_HOME}/config/config.xml | grep -oPm1 "(?<=<source-path>)[^<]+")
+  fi
+
+  tar -pczf /tmp/prim_domain.tar.gz --exclude ${DOMAIN_HOME}/wlsdeploy --exclude ${DOMAIN_HOME}/lib  ${empath} \
+  ${DOMAIN_HOME}/*
+
+  trace "Exiting wdtCreatePrimodialDomain"
+}
+
+#
+# wdtCreateDomain call WDT to create the domain
+#
+
+function wdtCreateDomain() {
+
+  trace "Entering wdtCreateDomain"
+  # make sure wdt create write out the merged model to a file in the root of the domain
+  export __WLSDEPLOY_STORE_MODEL__=1
+
+  if [ ! -z ${WDT_PASSPHRASE} ]; then
+    yes ${WDT_PASSPHRASE} | ${WDT_BINDIR}/updateDomain.sh -oracle_home ${MW_HOME} -domain_home \
+    ${DOMAIN_HOME} ${model_list} ${archive_list} ${variable_list} -use_encryption -domain_type ${WDT_DOMAIN_TYPE} \
+    ${OPSS_FLAGS}
+  else
+    ${WDT_BINDIR}/updateDomain.sh -oracle_home ${MW_HOME} -domain_home ${DOMAIN_HOME} $model_list \
+    ${archive_list} ${variable_list}  -domain_type ${WDT_DOMAIN_TYPE} ${OPSS_FLAGS}
+  fi
+  ret=$?
+  if [ $ret -ne 0 ]; then
+    trace SEVERE "Create Domain Failed "
+    if [ -d ${LOG_HOME} ] && [ ! -z ${LOG_HOME} ] ; then
+      cp ${WDT_BINDIR}/../logs/updateDomain.log ${LOG_HOME}/introspectJob_createDomain.log
+    else
+      tail -100 ${WDT_BINDIR}/../logs/updateDomain.log
+    fi
+    exit 1
+  fi
+
   trace "Exiting wdtCreateDomain"
 }
+
 
 function handleOnlineUpdate() {
 
