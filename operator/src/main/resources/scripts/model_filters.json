@@ -1,0 +1,11 @@
+{
+    "create": [
+      { "name": "primordial_filter", "path": "/u01/wdt/weblogic-deploy/lib/filter_create.py" }
+    ],
+    "deploy": [
+    ],
+    "discover": [
+    ],
+    "update": [
+    ]
+  }
