@@ -16,6 +16,7 @@ INTROSPECTCM_WLS_VERSION="/weblogic-operator/introspectormd5/wls.version"
 INTROSPECTCM_JDK_PATH="/weblogic-operator/introspectormd5/jdk.path"
 INTROSPECTCM_SECRETS_MD5="/weblogic-operator/introspectormd5/secrets.md5"
 DOMAIN_ZIPPED="/weblogic-operator/introspectormd5/domainzip.secure"
+PRIMORDIAL_DOMAIN_ZIPPED="/weblogic-operator/introspectormd5/primordial_domainzip.secure"
 
 INTROSPECTJOB_IMAGE_MD5="/tmp/inventory_image.md5"
 INTROSPECTJOB_CM_MD5="/tmp/inventory_cm.md5"
@@ -465,10 +466,10 @@ function getSecretsMD5() {
 }
 
 #
-# wdtCreatePrimodialDomain call WDT to create the domain
+# wdtCreatePrimordialDomain call WDT to create the domain
 #
 
-function wdtCreatePrimodialDomain() {
+function wdtCreatePrimordialDomain() {
 
   trace "Entering wdtCreatePrimodialDomain"
   # make sure wdt create write out the merged model to a file in the root of the domain
@@ -504,7 +505,7 @@ function wdtCreatePrimodialDomain() {
   tar -pczf /tmp/prim_domain.tar.gz --exclude ${DOMAIN_HOME}/wlsdeploy --exclude ${DOMAIN_HOME}/lib  ${empath} \
   ${DOMAIN_HOME}/*
 
-  trace "Exiting wdtCreatePrimodialDomain"
+  trace "Exiting wdtCreatePrimordialDomain"
 }
 
 #
@@ -518,18 +519,18 @@ function wdtCreateDomain() {
   export __WLSDEPLOY_STORE_MODEL__=1
 
   if [ ! -z ${WDT_PASSPHRASE} ]; then
-    yes ${WDT_PASSPHRASE} | ${WDT_BINDIR}/createDomain.sh -oracle_home ${MW_HOME} -domain_home \
+    yes ${WDT_PASSPHRASE} | ${WDT_BINDIR}/updateDomain.sh -oracle_home ${MW_HOME} -domain_home \
     ${DOMAIN_HOME} ${model_list} ${archive_list} ${variable_list} -use_encryption -domain_type ${WDT_DOMAIN_TYPE} \
     ${OPSS_FLAGS}
   else
-    ${WDT_BINDIR}/createDomain.sh -oracle_home ${MW_HOME} -domain_home ${DOMAIN_HOME} $model_list \
+    ${WDT_BINDIR}/updateDomain.sh -oracle_home ${MW_HOME} -domain_home ${DOMAIN_HOME} $model_list \
     ${archive_list} ${variable_list}  -domain_type ${WDT_DOMAIN_TYPE} ${OPSS_FLAGS}
   fi
   ret=$?
   if [ $ret -ne 0 ]; then
     trace SEVERE "Create Domain Failed "
     if [ -d ${LOG_HOME} ] && [ ! -z ${LOG_HOME} ] ; then
-      cp ${WDT_BINDIR}/../logs/createDomain.log ${LOG_HOME}/introspectJob_createDomain.log
+      cp ${WDT_BINDIR}/../logs/updateDomain.log ${LOG_HOME}/introspectJob_updateDomain.log
     else
       tail -100 ${WDT_BINDIR}/../logs/createDomain.log
     fi
