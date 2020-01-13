@@ -274,7 +274,6 @@ public class DomainSpec extends BaseConfiguration {
   @Description("Keep JRF schema between lifecycle updates")
   private Boolean keepJRFSchema;
 
-
   @Description("Experimental feature configurations.")
   private Experimental experimental;
 
