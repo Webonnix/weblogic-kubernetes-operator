@@ -382,12 +382,13 @@ public class DomainSpec extends BaseConfiguration {
     return this;
   }
 
-  public V1SecretReference getWebLogicCredentialsSecret() {
+  // NOTE: we ignore the namespace, which could be confusing. We should change it with the next schema update.
+  V1SecretReference getWebLogicCredentialsSecret() {
     return webLogicCredentialsSecret;
   }
 
   @SuppressWarnings("unused")
-  public void setWebLogicCredentialsSecret(V1SecretReference webLogicCredentialsSecret) {
+  void setWebLogicCredentialsSecret(V1SecretReference webLogicCredentialsSecret) {
     this.webLogicCredentialsSecret = webLogicCredentialsSecret;
   }
 
@@ -464,10 +465,6 @@ public class DomainSpec extends BaseConfiguration {
     this.imagePullPolicy = imagePullPolicy;
   }
 
-  private boolean hasImagePullSecrets() {
-    return imagePullSecrets != null && imagePullSecrets.size() != 0;
-  }
-
   /**
    * Gets image pull secrets.
    *
@@ -475,11 +472,7 @@ public class DomainSpec extends BaseConfiguration {
    */
   @Nullable
   public List<V1LocalObjectReference> getImagePullSecrets() {
-    if (hasImagePullSecrets()) {
-      return imagePullSecrets;
-    } else {
-      return Collections.emptyList();
-    }
+    return Optional.ofNullable(imagePullSecrets).orElse(Collections.emptyList());
   }
 
   public void setImagePullSecrets(@Nullable List<V1LocalObjectReference> imagePullSecrets) {
@@ -744,17 +737,9 @@ public class DomainSpec extends BaseConfiguration {
     return this;
   }
 
-  private boolean hasConfigOverrideSecrets() {
-    return configOverrideSecrets != null && configOverrideSecrets.size() != 0;
-  }
-
   @Nullable
   List<String> getConfigOverrideSecrets() {
-    if (hasConfigOverrideSecrets()) {
-      return configOverrideSecrets;
-    } else {
-      return Collections.emptyList();
-    }
+    return Optional.ofNullable(configOverrideSecrets).orElse(Collections.emptyList());
   }
 
   public void setConfigOverrideSecrets(@Nullable List<String> overridesSecretNames) {

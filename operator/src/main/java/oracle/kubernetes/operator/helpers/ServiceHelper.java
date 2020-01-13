@@ -17,6 +17,7 @@ import io.kubernetes.client.models.V1Service;
 import io.kubernetes.client.models.V1ServicePort;
 import io.kubernetes.client.models.V1ServiceSpec;
 import io.kubernetes.client.models.V1Status;
+import oracle.kubernetes.operator.DomainStatusUpdater;
 import oracle.kubernetes.operator.LabelConstants;
 import oracle.kubernetes.operator.ProcessingConstants;
 import oracle.kubernetes.operator.VersionConstants;
@@ -618,7 +619,7 @@ public class ServiceHelper {
       }
 
       private NextAction updateDomainStatus(Packet packet, CallResponse<V1Service> callResponse) {
-        return doNext(DomainStatusPatch.createStep(getDomain(), callResponse.getE()), packet);
+        return doNext(DomainStatusUpdater.createFailedStep(callResponse, null), packet);
       }
 
       @Override
@@ -834,12 +835,12 @@ public class ServiceHelper {
 
     @Override
     Map<String, String> getServiceLabels() {
-      return getAdminService().map(AdminService::getLabels).orElse(Collections.emptyMap());
+      return getNullableAdminService().map(AdminService::getLabels).orElse(Collections.emptyMap());
     }
 
     @Override
     Map<String, String> getServiceAnnotations() {
-      return getAdminService().map(AdminService::getAnnotations).orElse(Collections.emptyMap());
+      return getNullableAdminService().map(AdminService::getAnnotations).orElse(Collections.emptyMap());
     }
 
     @Override
@@ -872,10 +873,10 @@ public class ServiceHelper {
     }
 
     private Channel getChannel(String channelName) {
-      return getAdminService().map(a -> a.getChannel(channelName)).orElse(null);
+      return getNullableAdminService().map(a -> a.getChannel(channelName)).orElse(null);
     }
 
-    private Optional<AdminService> getAdminService() {
+    private Optional<AdminService> getNullableAdminService() {
       return Optional.ofNullable(getDomain().getAdminServerSpec())
           .map(AdminServerSpec::getAdminService);
     }

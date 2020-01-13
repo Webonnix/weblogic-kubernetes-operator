@@ -69,7 +69,9 @@ public class ConfigMapHelperTest {
     "tailLog.sh",
     "monitorLog.sh",
     "model_diff.py",
-    "modelInImage.sh"
+    "modelInImage.sh",
+    "wdt_create_filter.py",
+    "model_filters.json"
 
   };
   private static final String DOMAIN_NS = "namespace";
