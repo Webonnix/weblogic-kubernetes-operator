@@ -66,7 +66,7 @@ public class JobHelper {
     LOGGER.fine("runIntrospector topology: " + topology);
     LOGGER.fine("runningServersCount: " + runningServersCount(info));
     LOGGER.fine("creatingServers: " + creatingServers(info));
-    return topology == null || isBringingUpNewDomain(info) || isModelInImageUpdate(info);
+    return topology == null || isBringingUpNewDomain(info);
   }
 
   private static boolean isBringingUpNewDomain(DomainPresenceInfo info) {
