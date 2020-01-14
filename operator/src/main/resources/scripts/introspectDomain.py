@@ -851,9 +851,10 @@ class DomainSeedGenerator(Generator):
       empath = em_ear_path
     #packcmd = "tar -pczf /tmp/domain.tar.gz --exclude %s/wlsdeploy --exclude %s/lib %s %s/*" % (self.domain_home,
     # self.domain_home, empath, self.domain_home)
-    packcmd = "tar -pczf /tmp/domain.tar.gz %s/config/config.xml %s/config/jdbc/ %s/config/jms" % (self.domain_home,
-                                                                                                self.domain_home,
-                                                                                                self.domain_home)
+    packcmd = "tar -pczf /tmp/domain.tar.gz %s/config/config.xml %s/config/jdbc/ %s/config/jms %s/config/coherence " \
+              "%s/config/diagnostics %s/config/startup %s/config/configCache %s/config/nodemanager" % (
+              self.domain_home, self.domain_home, self.domain_home, self.domain_home, self.domain_home,
+              self.domain_home, self.domain_home, self.domain_home)
     trace(packcmd)
     rc = os.system(packcmd)
     trace("targz " + str(rc))
