@@ -255,6 +255,27 @@ class OfflineWlstEnv(object):
   def toDNS1123Legal(self, address):
     return address.lower().replace('_','-')
 
+  # work around offline-WLST bug where getDynamicServers() throws exception
+  # if the dynamicServer does not contain a name (which is optional)
+  # ret = cluster.getDynamicServers()
+  def getDynamicServers(self,cluster):
+    try:
+      return cluster.getDynamicServers()
+    except:
+      trace("hello there")
+      dyn_servers = ls('/Cluster/' + cluster.getName() + '/DynamicServers', returnMap='true')
+      trace("ls ok")
+      if dyn_servers is not None and dyn_servers.size() > 0:
+        trace("dyn_servers not None")
+        trace("curr_dir is " + pwd())
+        cd('/Cluster/' + cluster.getName() + '/DynamicServers/' + dyn_servers[0])
+        ret = cmo
+        trace("set ret to cmo")
+        cd('/')
+        trace("curr_dir is " + pwd())
+        return ret
+
+
 class SecretManager(object):
 
   def __init__(self, env):
@@ -337,11 +358,14 @@ class TopologyGenerator(Generator):
   #     at java.lang.reflect.Method.invoke(Method.java:498)
   def getDynamicServersOrNone(self,cluster):
     try:
-      ret = cluster.getDynamicServers()
+      trace(cluster.getName())
+      return self.env.getDynamicServers(cluster)
     except:
-      trace("Ignoring getDynamicServers() exception, this is expected.")
+      trace("xyz Ignoring getDynamicServers() exception, this is expected.")
       ret = None
+
     return ret
+
 
   def getSSLOrNone(self,server):
     try:
@@ -528,7 +552,7 @@ class TopologyGenerator(Generator):
         self.addError("The dynamic cluster " + self.name(cluster) + " is referenced by the server " + self.name(server) + ".")
 
   def validateDynamicClusterDynamicServersDoNotUseCalculatedListenPorts(self, cluster):
-    if cluster.getDynamicServers().isCalculatedListenPorts() == True:
+    if self.env.getDynamicServers(cluster).isCalculatedListenPorts() == True:
       self.addError("The dynamic cluster " + self.name(cluster) + "'s dynamic servers use calculated listen ports.")
 
   def validateServerCustomChannelName(self):
@@ -603,8 +627,9 @@ class TopologyGenerator(Generator):
       self.undent()
 
   def addDynamicServer(self, dynamicServer):
-    name=self.name(dynamicServer)
-    self.writeln("name: " + name)
+    if dynamicServer.getName() is not None:
+      name=self.name(dynamicServer)
+      self.writeln("name: " + name)
     self.writeln("serverTemplateName: " + self.quote(dynamicServer.getServerTemplate().getName()))
     self.writeln("calculatedListenPorts: " + str(dynamicServer.isCalculatedListenPorts()))
     self.writeln("serverNamePrefix: " + self.quote(dynamicServer.getServerNamePrefix()))
@@ -675,7 +700,7 @@ class TopologyGenerator(Generator):
     self.writeln(self.name(cluster) + ":")
     self.indent()
     template = self.findDynamicClusterServerTemplate(cluster)
-    dyn_servers = cluster.getDynamicServers()
+    dyn_servers = self.env.getDynamicServers(cluster)
     self.writeln("port: " + str(template.getListenPort()))
     self.writeln("maxServers: " + str(dyn_servers.getDynamicClusterSize()))
     self.writeln("baseServerName: " + self.quote(dyn_servers.getServerNamePrefix()))
@@ -865,7 +890,7 @@ class SitConfigGenerator(Generator):
 
   def customizeServerTemplate(self, template):
     name=template.getName()
-    server_name_prefix=template.getCluster().getDynamicServers().getServerNamePrefix()
+    server_name_prefix=self.env.getDynamicServers(template.getCluster()).getServerNamePrefix()
     listen_address=self.env.toDNS1123Legal(self.env.getDomainUID() + "-" + server_name_prefix + "${id}")
     self.writeln("<d:server-template>")
     self.indent()
