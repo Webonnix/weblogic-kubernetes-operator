@@ -181,11 +181,6 @@ public class CallBuilder {
           wrap(
               createSubjectAccessReviewAsync(
                   usage, (V1SubjectAccessReview) requestParams.body, callback));
-  private final CallFactory<V1SelfSubjectAccessReview> createSelfsubjectaccessreview =
-      (requestParams, usage, cont, callback) ->
-          wrap(
-              createSelfSubjectAccessReviewAsync(
-                  usage, (V1SelfSubjectAccessReview) requestParams.body, callback));
   private final CallFactory<V1SelfSubjectRulesReview> createSelfsubjectrulesreview =
       (requestParams, usage, cont, callback) ->
           wrap(
@@ -1440,6 +1435,13 @@ public class CallBuilder {
 
   /* Subject Access Review */
 
+  /**
+   * Delete persistent volume.
+   * @param name name
+   * @param deleteOptions delete options
+   * @return status
+   * @throws ApiException on failure
+   */
   public V1Status deletePersistentVolume(String name, V1DeleteOptions deleteOptions)
       throws ApiException {
     RequestParams requestParams =
@@ -1511,6 +1513,12 @@ public class CallBuilder {
     return claim.getMetadata().getNamespace();
   }
 
+  /**
+   * Asynchronously create persistent volume claim.
+   * @param claim claim
+   * @param responseStep response step
+   * @return step
+   */
   public Step createPersistentVolumeClaimAsync(
       V1PersistentVolumeClaim claim, ResponseStep<V1PersistentVolumeClaim> responseStep) {
     return createRequestAsync(
@@ -1525,6 +1533,14 @@ public class CallBuilder {
         new RequestParams("deletePVC", namespace, name, deleteOptions), deletePvcCall);
   }
 
+  /**
+   * Asynchronously delete persistent volume claim.
+   * @param name name
+   * @param namespace namespace
+   * @param deleteOptions delete options
+   * @param responseStep response step
+   * @return step
+   */
   public Step deletePersistentVolumeClaimAsync(
       String name,
       String namespace,
@@ -1698,32 +1714,8 @@ public class CallBuilder {
    */
   public V1SelfSubjectAccessReview createSelfSubjectAccessReview(V1SelfSubjectAccessReview body)
       throws ApiException {
-    RequestParams requestParams = new RequestParams("selfSubjectAccessReview", null, null, body);
+    RequestParams requestParams = new RequestParams("createSelfSubjectAccessReview", null, null, body);
     return executeSynchronousCall(requestParams, createSelfsubjectacessreviewCall);
-  }
-
-  private Call createSelfSubjectAccessReviewAsync(
-      ApiClient client,
-      V1SelfSubjectAccessReview body,
-      ApiCallback<V1SelfSubjectAccessReview> callback)
-      throws ApiException {
-    return new AuthorizationV1Api(client)
-        .createSelfSubjectAccessReviewAsync(body, null, null, pretty, callback);
-  }
-
-  /**
-   * Asynchronous step for creating self subject access review.
-   *
-   * @param body Body
-   * @param responseStep Response step for when call completes
-   * @return Asynchronous step
-   */
-  public Step createSelfSubjectAccessReviewAsync(
-      V1SelfSubjectAccessReview body, ResponseStep<V1SelfSubjectAccessReview> responseStep) {
-    return createRequestAsync(
-        responseStep,
-        new RequestParams("createSelfSubjectAccessReview", null, null, body),
-        createSelfsubjectaccessreview);
   }
 
   /**
@@ -1735,7 +1727,7 @@ public class CallBuilder {
    */
   public V1SelfSubjectRulesReview createSelfSubjectRulesReview(V1SelfSubjectRulesReview body)
       throws ApiException {
-    RequestParams params = new RequestParams("selfSubjectRulesReview", null, null, body);
+    RequestParams params = new RequestParams("createSelfSubjectRulesReview", null, null, body);
     return executeSynchronousCall(params, createSelfsubjectrulesreviewCall);
   }
 

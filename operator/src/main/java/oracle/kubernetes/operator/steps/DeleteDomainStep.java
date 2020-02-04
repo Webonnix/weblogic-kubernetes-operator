@@ -8,7 +8,9 @@ import java.util.stream.Collectors;
 import io.kubernetes.client.openapi.models.V1PersistentVolumeClaimList;
 import io.kubernetes.client.openapi.models.V1PersistentVolumeList;
 import io.kubernetes.client.openapi.models.V1ServiceList;
+import oracle.kubernetes.operator.Main;
 import oracle.kubernetes.operator.calls.CallResponse;
+import oracle.kubernetes.operator.helpers.AuthorizationProxy;
 import oracle.kubernetes.operator.helpers.CallBuilder;
 import oracle.kubernetes.operator.helpers.ConfigMapHelper;
 import oracle.kubernetes.operator.helpers.DomainPresenceInfo;
@@ -25,6 +27,12 @@ public class DeleteDomainStep extends Step {
   private final String namespace;
   private final String domainUid;
 
+  /**
+   * Construct delete domain step.
+   * @param info domain presence
+   * @param namespace namespace
+   * @param domainUid domain UID
+   */
   public DeleteDomainStep(DomainPresenceInfo info, String namespace, String domainUid) {
     super(null);
     this.info = info;
@@ -34,13 +42,23 @@ public class DeleteDomainStep extends Step {
 
   @Override
   public NextAction apply(Packet packet) {
-    Step serverDownStep =
-        Step.chain(
-            deletePods(),
-            deleteServices(),
-            deletePersistentVolumes(),
-            deletePersistentVolumeClaims(),
-            ConfigMapHelper.deleteDomainIntrospectorConfigMapStep(domainUid, namespace, getNext()));
+    Step serverDownStep = null;
+    // we don't delete PV unless we have the permission
+    if (!Main.isAccessAllowed(AuthorizationProxy.Resource.PERSISTENTVOLUMES, AuthorizationProxy.Operation.delete)) {
+      serverDownStep = Step.chain(
+          deletePods(),
+          deleteServices(),
+          deletePersistentVolumeClaims(),
+          ConfigMapHelper.deleteDomainIntrospectorConfigMapStep(domainUid, namespace, getNext()));
+    } else {
+      serverDownStep = Step.chain(
+          deletePods(),
+          deleteServices(),
+          deletePersistentVolumes(),
+          deletePersistentVolumeClaims(),
+          ConfigMapHelper.deleteDomainIntrospectorConfigMapStep(domainUid, namespace, getNext()));
+    }
+
     if (info != null) {
       serverDownStep =
           new ServerDownIteratorStep(
